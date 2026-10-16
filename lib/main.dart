@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/config/app_config.dart';
 import 'core/di/injection.dart' as di;
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
@@ -11,6 +12,7 @@ import 'features/restaurants/presentation/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppConfig.initialize(AppConfig.prod());
   try {
     await Firebase.initializeApp();
   } catch (_) {
@@ -36,8 +38,9 @@ class FoodGoApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'FoodGo',
+        debugShowCheckedModeBanner:
+            AppConfig.instance.environment != Environment.prod,
+        title: AppConfig.instance.appTitle,
         theme: AppTheme.lightTheme,
         home: const HomeScreen(),
       ),

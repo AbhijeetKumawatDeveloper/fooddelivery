@@ -1,0 +1,8 @@
+# Example key.properties configuration for signing release APKs and App Bundles.
+# Copy this file to android/key.properties and fill in your actual keystore credentials.
+# Note: android/key.properties is git-ignored to prevent credential leaks.
+
+storePassword=your_keystore_password
+keyPassword=your_key_password
+keyAlias=upload
+storeFile=upload-keystore.jks
