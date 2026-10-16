@@ -47,9 +47,10 @@ class _FoodMenuScreenViewState extends State<_FoodMenuScreenView> {
       appBar: AppBar(
         title: Text(widget.restaurant.name),
         actions: [
-          BlocBuilder<CartCubit, CartState>(
-            builder: (context, state) {
-              final count = (state is CartLoaded) ? state.totalItemCount : 0;
+          BlocSelector<CartCubit, CartState, int>(
+            selector: (state) =>
+                (state is CartLoaded) ? state.totalItemCount : 0,
+            builder: (context, count) {
               return Badge(
                 isLabelVisible: count > 0,
                 label: Text('$count'),
@@ -318,169 +319,175 @@ class _FoodMenuScreenViewState extends State<_FoodMenuScreenView> {
                           final food = displayedFoods[index];
                           final qty = _selectedQuantities[food.id] ?? 1;
 
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.asset(
-                                  food.image,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                        width: 80,
-                                        height: 80,
-                                        color: Colors.grey.shade200,
-                                        child: const Icon(
-                                          Icons.fastfood,
-                                          color: Colors.grey,
-                                          size: 36,
+                          return RepaintBoundary(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(
+                                    food.image,
+                                    width: 80,
+                                    height: 80,
+                                    cacheWidth: 160,
+                                    cacheHeight: 160,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              width: 80,
+                                              height: 80,
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(
+                                                Icons.fastfood,
+                                                color: Colors.grey,
+                                                size: 36,
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        food.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        food.description,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '₹${food.price.toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                const SizedBox(width: 8),
+                                Column(
                                   children: [
-                                    Text(
-                                      food.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    // Quantity Counter
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.remove),
+                                            iconSize: 16,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                              minWidth: 28,
+                                              minHeight: 28,
+                                            ),
+                                            onPressed: () {
+                                              if (qty > 1) {
+                                                setState(() {
+                                                  _selectedQuantities[food.id] =
+                                                      qty - 1;
+                                                });
+                                              }
+                                            },
+                                          ),
+                                          Text(
+                                            '$qty',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.add),
+                                            iconSize: 16,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                              minWidth: 28,
+                                              minHeight: 28,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _selectedQuantities[food.id] =
+                                                    qty + 1;
+                                              });
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      food.description,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 13,
+                                    const SizedBox(height: 6),
+                                    FilledButton(
+                                      style: FilledButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 6,
+                                        ),
+                                        visualDensity: VisualDensity.compact,
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      '₹${food.price.toStringAsFixed(0)}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.primary,
-                                      ),
+                                      onPressed: () {
+                                        final cartItem = CartItem(
+                                          foodId: food.id,
+                                          restaurantId: food.restaurantId,
+                                          name: food.name,
+                                          price: food.price,
+                                          quantity: qty,
+                                          image: food.image,
+                                        );
+
+                                        context.read<CartCubit>().addToCart(
+                                          cartItem,
+                                        );
+
+                                        ScaffoldMessenger.of(context)
+                                            .hideCurrentSnackBar();
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '$qty x ${food.name} added to cart',
+                                            ),
+                                            action: SnackBarAction(
+                                              label: 'View Cart',
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const CartScreen(),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text('Add'),
                                     ),
                                   ],
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Column(
-                                children: [
-                                  // Quantity Counter
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.remove),
-                                          iconSize: 16,
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 28,
-                                            minHeight: 28,
-                                          ),
-                                          onPressed: () {
-                                            if (qty > 1) {
-                                              setState(() {
-                                                _selectedQuantities[food.id] =
-                                                    qty - 1;
-                                              });
-                                            }
-                                          },
-                                        ),
-                                        Text(
-                                          '$qty',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.add),
-                                          iconSize: 16,
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 28,
-                                            minHeight: 28,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              _selectedQuantities[food.id] =
-                                                  qty + 1;
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  FilledButton(
-                                    style: FilledButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 6,
-                                      ),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                    onPressed: () {
-                                      final cartItem = CartItem(
-                                        foodId: food.id,
-                                        restaurantId: food.restaurantId,
-                                        name: food.name,
-                                        price: food.price,
-                                        quantity: qty,
-                                        image: food.image,
-                                      );
-
-                                      context.read<CartCubit>().addToCart(
-                                        cartItem,
-                                      );
-
-                                      ScaffoldMessenger.of(context)
-                                          .hideCurrentSnackBar();
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            '$qty x ${food.name} added to cart',
-                                          ),
-                                          action: SnackBarAction(
-                                            label: 'View Cart',
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      const CartScreen(),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('Add'),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           );
                         },
                       ),

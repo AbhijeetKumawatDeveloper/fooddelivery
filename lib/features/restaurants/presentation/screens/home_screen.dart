@@ -109,9 +109,10 @@ class _HomeScreenBody extends StatelessWidget {
             },
             icon: const Icon(Icons.receipt_long_outlined),
           ),
-          BlocBuilder<CartCubit, CartState>(
-            builder: (context, state) {
-              final count = (state is CartLoaded) ? state.totalItemCount : 0;
+          BlocSelector<CartCubit, CartState, int>(
+            selector: (state) =>
+                (state is CartLoaded) ? state.totalItemCount : 0,
+            builder: (context, count) {
               return Badge(
                 isLabelVisible: count > 0,
                 label: Text('$count'),
@@ -130,131 +131,104 @@ class _HomeScreenBody extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search food or restaurants',
-                prefixIcon: Icon(Icons.search),
-                suffixIcon: Icon(Icons.tune),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Categories',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 14),
-            const SizedBox(
-              height: 96,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _CategoryCard(title: 'Burger', icon: Icons.lunch_dining),
-                    _CategoryCard(title: 'Pizza', icon: Icons.local_pizza),
-                    _CategoryCard(title: 'Biryani', icon: Icons.rice_bowl),
-                    _CategoryCard(title: 'Drinks', icon: Icons.local_drink),
-                  ],
+      body: RefreshIndicator(
+        onRefresh: () => context.read<RestaurantCubit>().loadRestaurants(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search food or restaurants',
+                  prefixIcon: Icon(Icons.search),
+                  suffixIcon: Icon(Icons.tune),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Popular Restaurants',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              const SizedBox(height: 24),
+              const Text(
+                'Categories',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 14),
+              const SizedBox(
+                height: 96,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _CategoryCard(title: 'Burger', icon: Icons.lunch_dining),
+                      _CategoryCard(title: 'Pizza', icon: Icons.local_pizza),
+                      _CategoryCard(title: 'Biryani', icon: Icons.rice_bowl),
+                      _CategoryCard(title: 'Drinks', icon: Icons.local_drink),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  tooltip: 'Refresh',
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () {
-                    context.read<RestaurantCubit>().loadRestaurants();
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            BlocBuilder<RestaurantCubit, RestaurantState>(
-              builder: (context, state) {
-                if (state is RestaurantLoading) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 12),
-                          Text('Finding restaurants near you...'),
-                        ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Popular Restaurants',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    tooltip: 'Refresh',
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      context.read<RestaurantCubit>().loadRestaurants();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              BlocBuilder<RestaurantCubit, RestaurantState>(
+                builder: (context, state) {
+                  if (state is RestaurantLoading) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 12),
+                            Text('Finding restaurants near you...'),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                if (state is RestaurantFailure) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            state.message,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          const SizedBox(height: 16),
-                          FilledButton.icon(
-                            onPressed: () {
-                              context.read<RestaurantCubit>().loadRestaurants();
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                if (state is RestaurantLoaded) {
-                  if (state.restaurants.isEmpty) {
+                  if (state is RestaurantFailure) {
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(32),
+                        padding: const EdgeInsets.all(24),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.storefront_outlined,
+                              Icons.error_outline,
                               size: 48,
-                              color: Colors.grey,
+                              color: Colors.red,
                             ),
                             const SizedBox(height: 12),
-                            const Text(
-                              'No restaurants available at the moment.',
-                              style: TextStyle(color: Colors.grey),
+                            Text(
+                              state.message,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.red),
                             ),
                             const SizedBox(height: 16),
-                            FilledButton(
+                            FilledButton.icon(
                               onPressed: () {
                                 context
                                     .read<RestaurantCubit>()
                                     .loadRestaurants();
                               },
-                              child: const Text('Reload'),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Retry'),
                             ),
                           ],
                         ),
@@ -262,17 +236,38 @@ class _HomeScreenBody extends StatelessWidget {
                     );
                   }
 
-                  return Column(
-                    children: state.restaurants.map((restaurant) {
-                      return _RestaurantCard(restaurant: restaurant);
-                    }).toList(),
-                  );
-                }
+                  if (state is RestaurantLoaded) {
+                    if (state.restaurants.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Text(
+                            'No restaurants available at the moment.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      );
+                    }
 
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: state.restaurants.length,
+                      itemBuilder: (context, index) {
+                        return _RestaurantCard(
+                          key: ValueKey(state.restaurants[index].id),
+                          restaurant: state.restaurants[index],
+                        );
+                      },
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
@@ -320,7 +315,7 @@ class _CategoryCard extends StatelessWidget {
 class _RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
 
-  const _RestaurantCard({required this.restaurant});
+  const _RestaurantCard({super.key, required this.restaurant});
 
   void _showFoodOptions(BuildContext context) {
     showModalBottomSheet(
@@ -337,109 +332,116 @@ class _RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showFoodOptions(context),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset(
-              restaurant.image,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey.shade200,
-                  child: const Center(
-                    child: Icon(Icons.restaurant, size: 60, color: Colors.grey),
-                  ),
-                );
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          restaurant.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${restaurant.rating} ⭐',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    restaurant.cuisine,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 16,
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => _showFoodOptions(context),
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                restaurant.image,
+                height: 180,
+                width: double.infinity,
+                cacheHeight: 360,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 180,
+                    color: Colors.grey.shade200,
+                    child: const Center(
+                      child: Icon(
+                        Icons.restaurant,
+                        size: 60,
                         color: Colors.grey,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${restaurant.deliveryTime} min delivery',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  FoodMenuScreen(restaurant: restaurant),
+                    ),
+                  );
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            restaurant.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        },
-                        child: Text(
-                          'View Menu →',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${restaurant.rating} ⭐',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      restaurant.cuisine,
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${restaurant.deliveryTime} min delivery',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    FoodMenuScreen(restaurant: restaurant),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'View Menu →',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
