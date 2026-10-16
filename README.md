@@ -173,5 +173,54 @@ FoodGo includes a production-grade GitHub Actions CI workflow in [`.github/workf
 
 ---
 
+## ⚡ Performance Engineering
+
+FoodGo implements key production optimizations to guarantee smooth 60fps scrolling and optimal memory usage:
+- **Selective BLoC Rebuilds**: Utilizes `BlocSelector` in app bars and badges (`HomeScreen`, `FoodMenuScreen`) to avoid full screen re-renders when cart counts or individual item quantities change.
+- **Image Decode Optimization**: Constrains GPU decoding overhead with `cacheHeight: 360` for restaurant banners and `cacheWidth: 160, cacheHeight: 160` for food thumbnails, minimizing rasterizer jank.
+- **Paint Boundary Isolation**: Employs `RepaintBoundary` on list items to decouple scrolling repaint cycles.
+- **Lazy Item Construction**: Uses `ListView.builder` with on-demand item construction.
+
+---
+
+## 🏷️ Build Flavors & Environment Configuration
+
+FoodGo uses clean configuration objects via `AppConfig` with dedicated entrypoints for each lifecycle stage:
+
+```bash
+# Run Development Flavor (Mock fallback, verbose logs, debug banner)
+flutter run -t lib/main_dev.dart
+
+# Run Staging Flavor (Pre-production endpoints, integration testing)
+flutter run -t lib/main_staging.dart
+
+# Run Production Flavor (Optimized, live API endpoints)
+flutter run -t lib/main.dart
+```
+
+---
+
+## 📦 Release Engineering & Android Signing
+
+### 1. Release Keystore Signing
+For secure deployment without committing credentials into version control:
+1. Copy the template: `cp android/key.properties.example android/key.properties`
+2. Populate `storePassword`, `keyPassword`, `keyAlias`, and `storeFile` with your release keystore details.
+3. Gradle automatically picks up `key.properties` in `android/app/build.gradle.kts`. If absent, it safely falls back to debug signing for testing.
+
+### 2. ProGuard & R8 Bytecode Optimization
+Release builds automatically apply code shrinking and obfuscation via `android/app/proguard-rules.pro`, keeping necessary Flutter engine, Firebase, and location sensor bindings intact.
+
+### 3. Building Release Artifacts
+```bash
+# Build universal release APK
+flutter build apk --release -t lib/main.dart
+
+# Build Google Play App Bundle (AAB)
+flutter build appbundle --release -t lib/main.dart
+```
+
+---
+
 ## 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
