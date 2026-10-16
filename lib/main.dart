@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +14,18 @@ import 'features/restaurants/presentation/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Production Crash Reporting & Global Unhandled Error Trapping
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('[FoodGo FlutterError] ${details.exceptionAsString()}');
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('[FoodGo Unhandled Platform Error] $error\n$stack');
+    return true;
+  };
+
   AppConfig.initialize(AppConfig.prod());
   try {
     await Firebase.initializeApp();
