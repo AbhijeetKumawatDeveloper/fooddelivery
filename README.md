@@ -1,6 +1,6 @@
 # FoodGo 🍔 — Multi-Role Clean Architecture Food Delivery Platform
 
-[![FoodGo Flutter CI](https://github.com/your-username/FoodGo/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/your-username/FoodGo/actions)
+[![FoodGo Flutter CI](https://github.com/AbhijeetKumawatDeveloper/fooddelivery/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/AbhijeetKumawatDeveloper/fooddelivery/actions)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2.svg)](https://dart.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20BLoC%2FCubit-red.svg)](https://bloclibrary.dev)
@@ -149,8 +149,8 @@ FoodGo includes a production-grade GitHub Actions CI workflow in [`.github/workf
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/FoodGo.git
-   cd FoodGo
+   git clone https://github.com/AbhijeetKumawatDeveloper/fooddelivery.git
+   cd fooddelivery
    ```
 
 2. **Install dependencies:**
