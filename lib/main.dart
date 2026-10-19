@@ -13,6 +13,7 @@ import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/cart/presentation/cubit/cart_cubit.dart';
 import 'features/restaurants/presentation/cubit/restaurant_cubit.dart';
 import 'features/restaurants/presentation/screens/home_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +31,9 @@ void main() async {
 
   AppConfig.initialize(AppConfig.prod());
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (_) {
     // Graceful fallback to offline mock mode when Firebase configuration / credentials are not yet added
   }
