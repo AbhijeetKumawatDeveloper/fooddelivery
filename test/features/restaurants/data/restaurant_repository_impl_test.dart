@@ -1,9 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-
 import 'package:fooddelivery/core/errors/app_exception.dart';
 import 'package:fooddelivery/features/restaurants/data/datasources/restaurant_remote_datasource.dart';
 import 'package:fooddelivery/features/restaurants/data/repositories/restaurant_repository_impl.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockRestaurantRemoteDataSource extends Mock
     implements RestaurantRemoteDataSource {}

@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
+import 'dart:async';
 
+import 'package:flutter_test/flutter_test.dart';
 import 'package:fooddelivery/core/errors/app_exception.dart';
 import 'package:fooddelivery/features/restaurants/data/datasources/restaurant_local_datasource.dart';
 import 'package:fooddelivery/features/restaurants/data/datasources/restaurant_remote_datasource.dart';
@@ -11,6 +11,7 @@ import 'package:fooddelivery/features/restaurants/domain/repositories/restaurant
 import 'package:fooddelivery/features/restaurants/domain/usecases/get_restaurants.dart';
 import 'package:fooddelivery/features/restaurants/presentation/cubit/restaurant_cubit.dart';
 import 'package:fooddelivery/features/restaurants/presentation/cubit/restaurant_state.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockRestaurantRemoteDataSource extends Mock
     implements RestaurantRemoteDataSource {}
@@ -186,16 +187,18 @@ void main() {
         final repository = RestaurantRepositoryImpl(remoteDataSource);
         final cubit = RestaurantCubit(GetRestaurants(repository));
 
-        expectLater(
-          cubit.stream,
-          emitsInOrder([
-            const RestaurantLoading(),
-            predicate<RestaurantState>((state) {
-              return state is RestaurantLoaded &&
-                  state.restaurants.length == 3 &&
-                  state.restaurants.first.name == 'Burger House';
-            }),
-          ]),
+        unawaited(
+          expectLater(
+            cubit.stream,
+            emitsInOrder([
+              const RestaurantLoading(),
+              predicate<RestaurantState>((state) {
+                return state is RestaurantLoaded &&
+                    state.restaurants.length == 3 &&
+                    state.restaurants.first.name == 'Burger House';
+              }),
+            ]),
+          ),
         );
 
         await cubit.loadRestaurants();
@@ -211,12 +214,14 @@ void main() {
       );
       final cubit = RestaurantCubit(GetRestaurants(repository));
 
-      expectLater(
-        cubit.stream,
-        emitsInOrder([
-          const RestaurantLoading(),
-          const RestaurantFailure('Unable to retrieve restaurants.'),
-        ]),
+      unawaited(
+        expectLater(
+          cubit.stream,
+          emitsInOrder([
+            const RestaurantLoading(),
+            const RestaurantFailure('Unable to retrieve restaurants.'),
+          ]),
+        ),
       );
 
       await cubit.loadRestaurants();
@@ -229,12 +234,14 @@ void main() {
       final repository = MockEmptyRestaurantRepository();
       final cubit = RestaurantCubit(GetRestaurants(repository));
 
-      expectLater(
-        cubit.stream,
-        emitsInOrder([
-          const RestaurantLoading(),
-          const RestaurantFailure('No restaurants are available right now.'),
-        ]),
+      unawaited(
+        expectLater(
+          cubit.stream,
+          emitsInOrder([
+            const RestaurantLoading(),
+            const RestaurantFailure('No restaurants are available right now.'),
+          ]),
+        ),
       );
 
       await cubit.loadRestaurants();

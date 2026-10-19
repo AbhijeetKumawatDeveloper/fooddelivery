@@ -105,14 +105,14 @@ class OrderSuccessScreen extends StatelessWidget {
                         ],
                       ),
                       const Divider(height: 24),
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Estimated Delivery',
                             style: TextStyle(color: Colors.grey),
                           ),
-                          const Text(
+                          Text(
                             '30 - 45 mins',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),

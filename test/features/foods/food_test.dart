@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
+import 'dart:async';
 
+import 'package:flutter_test/flutter_test.dart';
 import 'package:fooddelivery/core/errors/app_exception.dart';
 import 'package:fooddelivery/features/foods/data/datasources/food_local_datasource.dart';
 import 'package:fooddelivery/features/foods/data/datasources/food_remote_datasource.dart';
@@ -11,6 +11,7 @@ import 'package:fooddelivery/features/foods/domain/repositories/food_repository.
 import 'package:fooddelivery/features/foods/domain/usecases/get_foods_by_restaurant.dart';
 import 'package:fooddelivery/features/foods/presentation/cubit/food_cubit.dart';
 import 'package:fooddelivery/features/foods/presentation/cubit/food_state.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockFoodRemoteDataSource extends Mock implements FoodRemoteDataSource {}
 
@@ -186,17 +187,19 @@ void main() {
         when(() => repository.getFoodsByRestaurant('r1'))
             .thenAnswer((_) async => sampleFoods);
 
-        expectLater(
-          cubit.stream,
-          emitsInOrder([
-            const FoodLoading(),
-            predicate<FoodState>((state) {
-              return state is FoodLoaded &&
-                  state.foods.length == 2 &&
-                  state.categories.contains('Burgers') &&
-                  state.categories.contains('Sides');
-            }),
-          ]),
+        unawaited(
+          expectLater(
+            cubit.stream,
+            emitsInOrder([
+              const FoodLoading(),
+              predicate<FoodState>((state) {
+                return state is FoodLoaded &&
+                    state.foods.length == 2 &&
+                    state.categories.contains('Burgers') &&
+                    state.categories.contains('Sides');
+              }),
+            ]),
+          ),
         );
 
         await cubit.loadFoods('r1');
@@ -208,12 +211,14 @@ void main() {
       when(() => repository.getFoodsByRestaurant('r1'))
           .thenAnswer((_) async => []);
 
-      expectLater(
-        cubit.stream,
-        emitsInOrder([
-          const FoodLoading(),
-          const FoodFailure('No items available for this restaurant.'),
-        ]),
+      unawaited(
+        expectLater(
+          cubit.stream,
+          emitsInOrder([
+            const FoodLoading(),
+            const FoodFailure('No items available for this restaurant.'),
+          ]),
+        ),
       );
 
       await cubit.loadFoods('r1');
@@ -225,12 +230,14 @@ void main() {
         when(() => repository.getFoodsByRestaurant('r1'))
             .thenThrow(const DataException('Server error occurred'));
 
-        expectLater(
-          cubit.stream,
-          emitsInOrder([
-            const FoodLoading(),
-            const FoodFailure('Server error occurred'),
-          ]),
+        unawaited(
+          expectLater(
+            cubit.stream,
+            emitsInOrder([
+              const FoodLoading(),
+              const FoodFailure('Server error occurred'),
+            ]),
+          ),
         );
 
         await cubit.loadFoods('r1');

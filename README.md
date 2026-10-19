@@ -4,10 +4,10 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2.svg)](https://dart.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20BLoC%2FCubit-red.svg)](https://bloclibrary.dev)
-[![Tests](https://img.shields.io/badge/Tests-112%20Passed-brightgreen.svg)](https://flutter.dev)
+[![Tests](https://img.shields.io/badge/Tests-119%20Passed-brightgreen.svg)](https://flutter.dev)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-FoodGo is a production-engineered, company-grade food delivery application built with **Flutter**, **Clean Architecture**, **BLoC/Cubit**, **GetIt Dependency Injection**, and **Firebase (Auth & Cloud Firestore)** with a built-in offline mock fallback engine.
+FoodGo is a production-engineered, company-grade food delivery application built with **Flutter**, **Clean Architecture**, **BLoC/Cubit**, **Modular GetIt Dependency Injection**, and **Firebase (Auth & Cloud Firestore)** with a built-in offline mock fallback engine.
 
 The platform integrates four distinct user roles into a single coherent reactive ecosystem:
 1. **Customer Mobile Experience** — Restaurant browsing, food menu exploration, persistent shopping cart, checkout calculation, Razorpay integration, and live order tracking.
@@ -24,7 +24,11 @@ FoodGo strictly follows Uncle Bob's **Clean Architecture** combined with **Featu
 ```
 lib/
 ├── core/
-│   ├── di/injection.dart               # Central GetIt Service Locator & Dependency Graph
+│   ├── di/                             # Modular GetIt Service Locator & Dependency Graph
+│   │   ├── injection.dart              # Core DI orchestrator & provider
+│   │   └── modules/                    # Feature-scoped DI sub-modules
+│   ├── errors/                         # Sealed Result<T> union type & Failure hierarchy
+│   ├── logger/                         # AppLogger contract & AppBlocObserver telemetry
 │   └── theme/app_theme.dart            # Design system, palette, typography & widget themes
 └── features/
     ├── auth/                           # Authentication & session gatekeeping
@@ -112,7 +116,10 @@ dart format --output=none --set-exit-if-changed .
 ```
 
 ### Test Suite Summary:
-- **112 Tests Passing** across all 9 domain features:
+- **119 Tests Passing** across all domain features & core architecture:
+  - `result_test.dart` — Functional `Result<T>` sealed class & `Failure` hierarchy
+  - `logger_test.dart` — `ConsoleAppLogger` and `AppBlocObserver` lifecycle telemetry
+  - `di_modules_test.dart` — Modular feature DI registrations & locator contracts
   - `auth_test.dart` — Auth flow, user entity, state transitions
   - `cart_calculations_test.dart` & `cart_persistence_test.dart` — Cart totals & disk storage
   - `calculate_checkout_test.dart` — Pricing calculations, discount limits, address management
@@ -125,6 +132,16 @@ dart format --output=none --set-exit-if-changed .
 
 ---
 
+## 🛡️ Phase 12: Production Architecture & Maintainability
+
+FoodGo incorporates enterprise Flutter maintainability standards:
+- **Modular Dependency Injection**: Decomposed into 10 domain-isolated modules under `lib/core/di/modules/` (`AuthModule`, `RestaurantModule`, `FoodModule`, `CartModule`, `CheckoutModule`, `OrderModule`, `PartnerModule`, `DeliveryModule`, `AdminModule`, `CoreModule`), avoiding giant service locator files.
+- **Enterprise Observability**: `AppLogger` and `AppBlocObserver` provide structured logging with debug toggle safeguards based on flavor environments (`AppConfig.instance.enableDebugLogs`).
+- **Functional Error Handling**: `Result<T>` sealed class with `Success<T>` and `FailureResult<T>` enabling exhaustive pattern matching and eliminating unhandled runtime exceptions.
+- **Strict Lint Rules**: Hardened `analysis_options.yaml` enforcing `avoid_print`, `unawaited_futures`, `prefer_const_constructors`, `always_declare_return_types`, and `directives_ordering` with **0 static analysis warnings**.
+
+---
+
 ## ⚙️ CI/CD Pipeline
 
 FoodGo includes a production-grade GitHub Actions CI workflow in [`.github/workflows/flutter-ci.yml`](file:///D:/Food_Delivery/.github/workflows/flutter-ci.yml):
@@ -134,7 +151,7 @@ FoodGo includes a production-grade GitHub Actions CI workflow in [`.github/workf
 - **Steps**:
   1. Checks formatting (`dart format --output=none --set-exit-if-changed .`).
   2. Runs static analysis with strict linting (`flutter analyze`).
-  3. Executes all 112 unit & widget tests and generates coverage reports (`flutter test --coverage`).
+  3. Executes all 119 unit & widget tests and generates coverage reports (`flutter test --coverage`).
 
 ---
 

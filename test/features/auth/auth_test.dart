@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-
 import 'package:fooddelivery/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:fooddelivery/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:fooddelivery/features/auth/domain/entities/app_user.dart';
@@ -11,6 +9,7 @@ import 'package:fooddelivery/features/auth/domain/repositories/auth_repository.d
 import 'package:fooddelivery/features/auth/domain/usecases/auth_usecases.dart';
 import 'package:fooddelivery/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:fooddelivery/features/auth/presentation/cubit/auth_state.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockAuthRemoteDataSource extends Mock implements AuthRemoteDataSource {}
 
@@ -193,16 +192,18 @@ void main() {
       when(() => repository.signIn(email: 'fail@foodgo.com', password: 'wrong'))
           .thenThrow(FirebaseAuthException(code: 'user-not-found'));
 
-      expectLater(
-        authCubit.stream,
-        emitsInOrder([
-          predicate<AuthState>((state) => state.status == AuthStatus.loading),
-          predicate<AuthState>(
-            (state) =>
-                state.status == AuthStatus.failure &&
-                state.errorMessage == 'Email or password is incorrect.',
-          ),
-        ]),
+      unawaited(
+        expectLater(
+          authCubit.stream,
+          emitsInOrder([
+            predicate<AuthState>((state) => state.status == AuthStatus.loading),
+            predicate<AuthState>(
+              (state) =>
+                  state.status == AuthStatus.failure &&
+                  state.errorMessage == 'Email or password is incorrect.',
+            ),
+          ]),
+        ),
       );
 
       await authCubit.login('fail@foodgo.com', 'wrong');
@@ -217,17 +218,19 @@ void main() {
         ),
       ).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
 
-      expectLater(
-        authCubit.stream,
-        emitsInOrder([
-          predicate<AuthState>((state) => state.status == AuthStatus.loading),
-          predicate<AuthState>(
-            (state) =>
-                state.status == AuthStatus.failure &&
-                state.errorMessage ==
-                    'An account already exists with this email.',
-          ),
-        ]),
+      unawaited(
+        expectLater(
+          authCubit.stream,
+          emitsInOrder([
+            predicate<AuthState>((state) => state.status == AuthStatus.loading),
+            predicate<AuthState>(
+              (state) =>
+                  state.status == AuthStatus.failure &&
+                  state.errorMessage ==
+                      'An account already exists with this email.',
+            ),
+          ]),
+        ),
       );
 
       await authCubit.register(
@@ -249,14 +252,16 @@ void main() {
       when(() => repository.sendPasswordResetEmail('reset@foodgo.com'))
           .thenAnswer((_) async {});
 
-      expectLater(
-        authCubit.stream,
-        emitsInOrder([
-          predicate<AuthState>((state) => state.status == AuthStatus.loading),
-          predicate<AuthState>(
-            (state) => state.status == AuthStatus.unauthenticated,
-          ),
-        ]),
+      unawaited(
+        expectLater(
+          authCubit.stream,
+          emitsInOrder([
+            predicate<AuthState>((state) => state.status == AuthStatus.loading),
+            predicate<AuthState>(
+              (state) => state.status == AuthStatus.unauthenticated,
+            ),
+          ]),
+        ),
       );
 
       await authCubit.forgotPassword('reset@foodgo.com');

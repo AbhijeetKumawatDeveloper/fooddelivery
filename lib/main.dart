@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/config/app_config.dart';
 import 'core/di/injection.dart' as di;
+import 'core/logger/app_bloc_observer.dart';
+import 'core/logger/app_logger.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/cart/presentation/cubit/cart_cubit.dart';
@@ -33,6 +35,7 @@ void main() async {
     // Graceful fallback to offline mock mode when Firebase configuration / credentials are not yet added
   }
   await di.setupDependencies();
+  Bloc.observer = AppBlocObserver(logger: di.getIt<AppLogger>());
   runApp(const FoodGoApp());
 }
 
