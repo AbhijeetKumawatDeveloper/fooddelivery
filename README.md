@@ -17,29 +17,41 @@ The platform integrates four distinct user roles into a single coherent reactive
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ Multi-App Platform Architecture
 
-FoodGo strictly follows Uncle Bob's **Clean Architecture** combined with **Feature-Driven Design**, decoupling business rules from external dependencies and UI frameworks:
+FoodGo is architected as an enterprise multi-application workspace separating each user ecosystem into its own dedicated application while sharing domain models, repositories, and Firebase integration via `packages/shared_core`:
 
 ```
-lib/
-├── core/
-│   ├── di/                             # Modular GetIt Service Locator & Dependency Graph
-│   │   ├── injection.dart              # Core DI orchestrator & provider
-│   │   └── modules/                    # Feature-scoped DI sub-modules
-│   ├── errors/                         # Sealed Result<T> union type & Failure hierarchy
-│   ├── logger/                         # AppLogger contract & AppBlocObserver telemetry
-│   └── theme/app_theme.dart            # Design system, palette, typography & widget themes
-└── features/
-    ├── auth/                           # Authentication & session gatekeeping
-    ├── restaurants/                    # Restaurant catalog, discovery, filters & search
-    ├── foods/                          # Restaurant menu catalog & category browsing
-    ├── cart/                           # Persistent cart backed by SharedPreferences
-    ├── checkout/                       # Multi-address manager, fee calculations & Razorpay gateway
-    ├── orders/                         # Customer order history & real-time tracking stepper
-    ├── restaurant_partner/             # Restaurant POS dashboard & kitchen status queue
-    ├── delivery_partner/               # Delivery Partner App, GPS simulation & route stepper
-    └── admin/                          # Admin Console, KPI analytics & governance toggles
+Food_Delivery/
+├── packages/
+│   └── shared_core/                    # Shared domain models, repositories, Firebase & theme
+│       ├── lib/core/                   # Modular DI, Result pattern, AppLogger, AppBlocObserver
+│       ├── lib/features/               # Auth, Restaurants, Foods, Cart, Orders, POS, Driver, Admin
+│       └── lib/firebase_options.dart   # Firebase credentials & options
+│
+├── apps/
+│   ├── customer_app/                   # Customer Food Delivery Mobile App (Android / iOS)
+│   ├── restaurant_app/                 # Restaurant Partner POS & Kitchen App (Tablet / Android)
+│   ├── delivery_app/                   # Delivery Partner / Rider Dispatch App (Android / iOS)
+│   └── admin_web/                      # Platform Admin Console Web Application (Desktop / Browser)
+│
+└── lib/                                # Core workspace engine & test suites
+```
+
+### Running Each Application Independently:
+
+```bash
+# 1. Customer Food Delivery App (Mobile)
+cd apps/customer_app && flutter run
+
+# 2. Restaurant Partner POS App (Tablet/Mobile)
+cd apps/restaurant_app && flutter run
+
+# 3. Delivery Partner Rider App (Mobile)
+cd apps/delivery_app && flutter run
+
+# 4. Platform Admin Web Application (Browser)
+cd apps/admin_web && flutter run -d chrome
 ```
 
 ### Layer Separation per Feature
