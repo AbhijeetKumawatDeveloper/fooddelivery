@@ -14,7 +14,20 @@ import '../cubit/food_state.dart';
 class FoodMenuScreen extends StatelessWidget {
   final Restaurant restaurant;
 
-  const FoodMenuScreen({super.key, required this.restaurant});
+  FoodMenuScreen({
+    super.key,
+    Restaurant? restaurant,
+    String? restaurantId,
+    String? restaurantName,
+  }) : restaurant = restaurant ??
+            Restaurant(
+              id: restaurantId ?? 'r1',
+              name: restaurantName ?? 'Restaurant',
+              cuisine: 'Multi-Cuisine',
+              rating: 4.5,
+              deliveryTime: 25,
+              image: 'assets/images/Burger.png',
+            );
 
   @override
   Widget build(BuildContext context) {
